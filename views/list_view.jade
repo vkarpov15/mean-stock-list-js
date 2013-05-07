@@ -1,0 +1,65 @@
+doctype 5
+html(ng-app)
+  head
+    title MEAN Stock Form Demo
+
+    script(src='http://ajax.googleapis.com/ajax/libs/angularjs/1.0.3/angular.js')
+
+    script(type='text/javascript')
+      /* Inlined for ease of use. Generally inlining AngularJS controllers in
+       * your Jade files is terrible practice, because not having a separate
+       * .js file cripples one of AngularJS's biggest advantages - powerful
+       * unit testing features */ 
+      function StocksListController($scope, $http, $window) {
+        $scope.stocksList = [];
+
+        $scope.newStock = {};
+
+        $scope.init = function(stocksList) {
+          $scope.stocksList = stocksList;
+        }
+
+        $scope.save = function(form) {
+          $http.post('/stocks.json', { stock : $scope.newStock }).success(function(response) {
+            //$window.alert(JSON.stringify(response));
+            // Remove all error markers
+            for (key in $scope.newStock) {
+              form[key].$error.mongoose = null;
+            }
+
+            if (response.error) {
+              // We got some errors, put them into angular
+              for (key in response.error.errors) {
+                form[key].$error.mongoose = response.error.errors[key].type;
+              }
+            } else if (response.stocksList) {
+              $scope.stocksList = response.stocksList;
+              $scope.newStock = {};
+            }
+          });
+        };
+      }
+
+  body
+    div(ng-controller="StocksListController", ng-init="init( #{JSON.stringify(stocksList)} );")
+      | Add a stock:
+      br
+      form(name="stocksForm", ng-submit="save(stocksForm)")
+        input(type="text", ng-model="newStock.symbol", name="symbol", placeholder="Symbol")
+        div(ng-show="stocksForm.symbol.$error.mongoose", style="color: red")
+          {{stocksForm.symbol.$error.mongoose}}
+        br
+        input(type="number", ng-model="newStock.price", name="price", placeholder="Price")
+        div(ng-show="stocksForm.price.$error.mongoose", style="color: red")
+          {{stocksForm.price.$error.mongoose}}
+        br
+        input(type="number", ng-model="newStock.quantity", name="quantity", placeholder="Quantity")
+        div(ng-show="stocksForm.quantity.$error.mongoose", style="color: red")
+          {{stocksForm.quantity.$error.mongoose}}
+        br
+        input(type="submit")
+      br
+      hr
+      br
+      div(ng-repeat="stock in stocksList.stocks")
+        | Symbol : {{stock.symbol}}, Price : {{stock.price}}, Quantity : {{stock.quantity}}
