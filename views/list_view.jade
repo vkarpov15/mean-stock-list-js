@@ -23,8 +23,10 @@ html(ng-app)
           $http.post('/stocks.json', { stock : $scope.newStock }).success(function(response) {
             //$window.alert(JSON.stringify(response));
             // Remove all error markers
-            for (key in $scope.newStock) {
-              form[key].$error.mongoose = null;
+            for (key in form) {
+              if (form[key].$error) {
+                form[key].$error.mongoose = null;
+              }
             }
 
             if (response.error) {
@@ -49,9 +51,12 @@ html(ng-app)
         div(ng-show="stocksForm.symbol.$error.mongoose", style="color: red")
           {{stocksForm.symbol.$error.mongoose}}
         br
-        input(type="number", ng-model="newStock.price", name="price", placeholder="Price")
-        div(ng-show="stocksForm.price.$error.mongoose", style="color: red")
-          {{stocksForm.price.$error.mongoose}}
+        select(ng-model="newStock.price.currency", name="price.currency", ng-options="currency for currency in #{JSON.stringify(currencies)}")
+        input(type="number", ng-model="newStock.price.price", name="price.price", placeholder="Price")
+        div(ng-show="stocksForm['price.currency'].$error.mongoose", style="color: red")
+          {{stocksForm['price.currency'].$error.mongoose}}
+        div(ng-show="stocksForm['price.price'].$error.mongoose", style="color: red")
+          {{stocksForm['price.price'].$error.mongoose}}
         br
         input(type="number", ng-model="newStock.quantity", name="quantity", placeholder="Quantity")
         div(ng-show="stocksForm.quantity.$error.mongoose", style="color: red")
